@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Menu, X, Sun, Moon, Sparkles } from 'lucide-react';
@@ -29,6 +29,7 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
   const pathname = usePathname();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
+
   const mounted = React.useSyncExternalStore(
     () => () => {},
     () => true,
@@ -41,95 +42,114 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Auto-close menu on navigation without cascading effect renders
-  const [prevPathname, setPrevPathname] = useState(pathname);
-  if (prevPathname !== pathname) {
-    setPrevPathname(pathname);
+  // Close the mobile menu when navigation changes.
+  const [previousPathname, setPreviousPathname] = useState(pathname);
+
+  if (previousPathname !== pathname) {
+    setPreviousPathname(pathname);
     setIsOpen(false);
   }
 
   return (
-    <header className="fixed top-2.5 sm:top-3 left-0 right-0 z-50 px-3 sm:px-4 lg:px-6 pointer-events-none flex justify-center">
-      <div className={`w-full max-w-[1400px] bg-surface/85 dark:bg-[#18110D]/85 backdrop-blur-md border border-hairline rounded-full px-3.5 sm:px-5 lg:px-5 py-1.5 flex items-center justify-between shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.25)] transition-all pointer-events-auto relative z-50 ${isScrolled ? 'border-hairline shadow-[0_12px_40px_rgba(0,0,0,0.06)]' : ''}`}>
-        
-        {/* Logo with Branch Monogram (Left) */}
-        <div className="flex items-center flex-shrink-0">
-          <Link href="/" className="flex items-center gap-2 mr-2 lg:mr-3 xl:mr-5 group">
-            <Logo className="w-9 h-9 sm:w-10 sm:h-10 transition-transform group-hover:scale-105 shrink-0" />
-            <span className="font-extrabold text-lg sm:text-xl text-primary font-sans tracking-tight group-hover:text-accent transition-colors">
+    <header className="fixed top-2.5 left-0 right-0 z-50 flex justify-center px-2.5 pointer-events-none sm:top-3 sm:px-4 lg:px-6">
+      <div
+        className={`relative z-50 flex w-full max-w-[1400px] items-center justify-between gap-2 rounded-full border border-hairline bg-surface/85 px-3 py-2 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.03)] transition-all pointer-events-auto dark:bg-[#18110D]/85 dark:shadow-[0_8px_30px_rgba(0,0,0,0.25)] sm:px-5 sm:py-1.5 lg:px-5 ${
+          isScrolled
+            ? 'border-hairline shadow-[0_12px_40px_rgba(0,0,0,0.06)]'
+            : ''
+        }`}
+      >
+        {/* Logo */}
+        <div className="flex min-w-0 flex-shrink-0 items-center">
+          <Link
+            href="/"
+            className="group flex min-w-0 items-center gap-2 mr-1.5 sm:mr-2 lg:mr-3 xl:mr-5"
+          >
+            <Logo className="h-10 w-10 shrink-0 transition-transform group-hover:scale-105" />
+            <span className="truncate font-sans text-lg font-extrabold tracking-tight text-primary transition-colors group-hover:text-accent sm:text-xl">
               Contri<span className="text-accent">bo</span>
             </span>
           </Link>
         </div>
-        
-        {/* Navigation Links (Center) — active from lg (1024px, all Mac and laptop screens) */}
-        <nav className="hidden lg:flex items-center justify-center flex-1 gap-1 xl:gap-2.5 2xl:gap-4 text-[13px] lg:text-[13px] xl:text-[14px] 2xl:text-[14.5px] font-medium">
-          {LINKS.map(link => {
-            const isActive = pathname === link.href || pathname?.startsWith(link.href + '/');
+
+        {/* Desktop Navigation */}
+        <nav className="hidden flex-1 items-center justify-center gap-1 text-[13px] font-medium lg:flex xl:gap-2.5 xl:text-[14px] 2xl:gap-4 2xl:text-[14.5px]">
+          {LINKS.map((link) => {
+            const isActive =
+              pathname === link.href ||
+              pathname?.startsWith(`${link.href}/`);
+
             return (
-              <Link 
-                key={link.href} 
-                href={link.href} 
-                className={`relative px-2.5 xl:px-3 py-1.5 rounded-full transition-all duration-150 whitespace-nowrap flex items-center gap-1 ${
-                  isActive 
-                    ? 'text-accent font-semibold bg-accent/10 dark:bg-accent/15 border border-accent/25 shadow-2xs' 
-                    : 'text-secondary hover:text-primary hover:bg-surface-raised/80 font-medium'
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`relative flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1.5 transition-all duration-150 xl:px-3 ${
+                  isActive
+                    ? 'border border-accent/25 bg-accent/10 font-semibold text-accent shadow-2xs dark:bg-accent/15'
+                    : 'font-medium text-secondary hover:bg-surface-raised/80 hover:text-primary'
                 }`}
               >
                 {link.isAi && (
-                  <Sparkles size={13} className="text-accent shrink-0 animate-pulse" />
+                  <Sparkles
+                    size={13}
+                    className="shrink-0 animate-pulse text-accent"
+                  />
                 )}
                 {link.label}
               </Link>
             );
           })}
         </nav>
-        
-        {/* Right Controls (Theme Toggle & AuthButton) */}
-        <div className="hidden lg:flex items-center gap-2 xl:gap-3 flex-shrink-0">
-          {/* Segmented Theme Switcher on wide screens (xl+), Single sleek toggle on laptop screens (lg) */}
+
+        {/* Desktop Theme and Authentication Controls */}
+        <div className="hidden flex-shrink-0 items-center gap-2 lg:flex xl:gap-3">
           {mounted ? (
             <>
-              {/* Dual-segmented on xl+ */}
-              <div 
-                role="radiogroup" 
+              {/* Theme switcher on large screens */}
+              <div
+                role="radiogroup"
                 aria-label="Theme switcher"
-                className="hidden xl:flex items-center p-1 rounded-full border border-hairline/80 bg-surface-raised/70 shadow-2xs backdrop-blur-xs gap-0.5"
+                className="hidden items-center gap-0.5 rounded-full border border-hairline/80 bg-surface-raised/70 p-1 shadow-2xs backdrop-blur-xs xl:flex"
               >
                 <button
+                  type="button"
                   onClick={() => setTheme('light')}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                  className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-full transition-all duration-200 ${
                     !isDark
-                      ? 'bg-surface text-amber-500 shadow-xs border border-hairline/70 scale-105'
-                      : 'text-muted hover:text-primary hover:scale-105'
+                      ? 'scale-105 border border-hairline/70 bg-surface text-amber-500 shadow-xs'
+                      : 'text-muted hover:scale-105 hover:text-primary'
                   }`}
                   aria-label="Switch to light mode"
                   title="Light mode"
                 >
-                  <Sun size={15} className="transition-transform duration-200" />
+                  <Sun size={15} />
                 </button>
+
                 <button
+                  type="button"
                   onClick={() => setTheme('dark')}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                  className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-full transition-all duration-200 ${
                     isDark
-                      ? 'bg-surface text-sky-400 shadow-xs border border-hairline/70 scale-105'
-                      : 'text-muted hover:text-primary hover:scale-105'
+                      ? 'scale-105 border border-hairline/70 bg-surface text-sky-400 shadow-xs'
+                      : 'text-muted hover:scale-105 hover:text-primary'
                   }`}
                   aria-label="Switch to dark mode"
                   title="Dark mode"
                 >
-                  <Moon size={14} className="transition-transform duration-200" />
+                  <Moon size={14} />
                 </button>
               </div>
 
-              {/* Compact single toggle on lg screens (MacBooks / compact laptops) */}
+              {/* Single theme toggle on laptop screens */}
               <button
+                type="button"
                 onClick={() => setTheme(isDark ? 'light' : 'dark')}
-                className="flex xl:hidden w-8.5 h-8.5 items-center justify-center border border-hairline/80 rounded-full bg-surface-raised/60 hover:bg-surface-raised transition-all cursor-pointer text-secondary hover:text-primary shadow-2xs active:scale-95"
+                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-hairline/80 bg-surface-raised/60 transition-all hover:bg-surface-raised xl:hidden"
                 aria-label="Toggle theme"
                 title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
               >
@@ -141,81 +161,101 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
               </button>
             </>
           ) : (
-            <div className="w-8.5 h-8.5 rounded-full border border-hairline/50 bg-surface-raised/40 animate-pulse" />
+            <div className="h-9 w-9 animate-pulse rounded-full border border-hairline/50 bg-surface-raised/40" />
           )}
-          
-          {authButton && <div className="ml-0.5 pl-2.5 xl:pl-3 border-l border-hairline/80">{authButton}</div>}
+
+          {authButton && (
+            <div className="ml-0.5 border-l border-hairline/80 pl-2.5 xl:pl-3">
+              {authButton}
+            </div>
+          )}
         </div>
 
-        {/* Global search command palette */}
+        {/* Global Search Command Palette */}
         <CommandPalette hideTrigger={true} />
-        
-        {/* Mobile & Tablet Menu Button & Controls (< lg, e.g. phones and portrait tablets) */}
-        <div className="flex lg:hidden items-center gap-2 flex-shrink-0">
+
+        {/* Mobile and Tablet Controls */}
+        <div className="flex flex-shrink-0 items-center gap-1.5 lg:hidden sm:gap-2">
           {mounted ? (
             <button
+              type="button"
               onClick={() => setTheme(isDark ? 'light' : 'dark')}
-              className="w-10 h-10 flex items-center justify-center border border-hairline rounded-full bg-surface/70 hover:bg-surface-raised transition-all duration-200 cursor-pointer shadow-2xs text-secondary hover:text-primary active:scale-95"
+              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-hairline bg-surface/70 shadow-2xs transition-all duration-200 hover:bg-surface-raised focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               aria-label="Toggle theme"
               title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {isDark ? (
-                <Sun size={18} className="text-amber-400 transition-transform duration-300" />
+                <Sun size={19} className="text-amber-400" />
               ) : (
-                <Moon size={17} className="text-secondary transition-transform duration-300" />
+                <Moon size={18} className="text-secondary" />
               )}
             </button>
           ) : (
-            <div className="w-10 h-10 rounded-full border border-hairline bg-surface-raised/40 animate-pulse" />
+            <div className="h-11 w-11 shrink-0 animate-pulse rounded-full border border-hairline bg-surface-raised/40" />
           )}
-          
-          {authButton && <div>{authButton}</div>}
-          
+
+          {authButton && (
+            <div className="flex min-h-11 shrink-0 items-center">
+              {authButton}
+            </div>
+          )}
+
           <button
+            type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="w-10 h-10 flex items-center justify-center text-muted hover:text-primary hover:bg-surface-raised/50 border border-hairline rounded-full transition-all focus:outline-none cursor-pointer shadow-2xs active:scale-95"
+            className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-hairline text-muted transition-all hover:bg-surface-raised/50 hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             aria-label="Toggle menu"
+            aria-expanded={isOpen}
+            aria-controls="mobile-navigation"
           >
-            {isOpen ? <X size={19} /> : <Menu size={19} />}
+            {isOpen ? <X size={21} /> : <Menu size={21} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Backdrop Overlay to dismiss on tap */}
+      {/* Mobile Backdrop */}
       {isOpen && (
-        <div 
+        <div
           onClick={() => setIsOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/20 dark:bg-black/50 backdrop-blur-xs z-40 pointer-events-auto"
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-xs pointer-events-auto dark:bg-black/50 lg:hidden"
+          aria-hidden="true"
         />
       )}
 
-      {/* Mobile & Tablet Dropdown Card */}
+      {/* Mobile Navigation Menu */}
       {isOpen && (
-        <div className="lg:hidden fixed top-[68px] left-4 right-4 z-50 pointer-events-auto border border-hairline bg-surface/98 dark:bg-[#18110D]/98 backdrop-blur-xl rounded-2xl shadow-2xl p-2.5 animate-[fade_0.2s_ease-out_forwards]">
-          <div className="flex flex-col gap-1">
-            {LINKS.map(link => {
-              const isActive = pathname === link.href || pathname?.startsWith(link.href + '/');
+        <div
+          id="mobile-navigation"
+          className="fixed left-2.5 right-2.5 top-[76px] z-50 rounded-2xl border border-hairline bg-surface/98 p-2.5 shadow-2xl backdrop-blur-xl pointer-events-auto dark:bg-[#18110D]/98 sm:left-4 sm:right-4 sm:top-[72px] lg:hidden"
+        >
+          <nav className="flex flex-col gap-1" aria-label="Mobile navigation">
+            {LINKS.map((link) => {
+              const isActive =
+                pathname === link.href ||
+                pathname?.startsWith(`${link.href}/`);
+
               return (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-xl transition-all pointer-events-auto cursor-pointer ${
-                    isActive 
-                      ? 'text-accent bg-accent/10 font-bold border border-accent/20' 
+                  className={`flex min-h-11 cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
+                    isActive
+                      ? 'border border-accent/20 bg-accent/10 font-bold text-accent'
                       : 'text-primary hover:bg-surface-raised active:bg-surface-raised'
                   }`}
                 >
                   <span>{link.label}</span>
+
                   {link.isAi && (
-                    <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/30">
+                    <span className="rounded-full border border-accent/30 bg-accent/15 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-accent">
                       AI Powered
                     </span>
                   )}
                 </Link>
               );
             })}
-          </div>
+          </nav>
         </div>
       )}
     </header>
