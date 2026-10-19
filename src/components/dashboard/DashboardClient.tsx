@@ -80,6 +80,31 @@ function getProgramTheme(slug?: string) {
 
 
 
+/**
+ * Project saves point at the projects directory because there is no
+ * /projects/[id] route. The title becomes the search query and the
+ * organization slug narrows the listing when it was saved.
+ */
+export function savedItemHref(
+  item: Pick<DashboardSaved, 'type' | 'title' | 'slug'>
+): string | null {
+  if (item.type === 'project') {
+    const params = new URLSearchParams();
+    const title = item.title?.trim();
+    const slug = item.slug?.trim();
+    if (title) params.set('q', title);
+    if (slug) params.set('orgSlug', slug);
+    const query = params.toString();
+    return query ? `/projects?${query}` : '/projects';
+  }
+
+  if (item.type === 'organization' && item.slug?.trim()) {
+    return `/organizations/${encodeURIComponent(item.slug.trim())}`;
+  }
+
+  return null;
+}
+
 function formatDate(value?: string | Date | null) {
   if (!value) return '—';
   const d = new Date(value);
@@ -682,65 +707,68 @@ export function DashboardClient({
               </div>
             ) : (
               <div className="divide-y divide-hairline">
-                {filteredBookmarks.map((item) => (
-                  <div key={item._id} className="py-4 flex items-center justify-between group">
-                    <div className="flex items-center gap-3.5">
-                      {item.type === 'organization' ? (
-                        <div className="p-1 rounded-xl bg-page border border-hairline shrink-0">
-                          <OrgLogo
-                            logoUrl={item.logoUrl}
-                            name={item.title}
-                            slug={item.slug}
-                            className="w-10 h-10 rounded-lg"
-                            size={22}
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-10 h-10 rounded-xl bg-surface-raised border border-hairline flex items-center justify-center shrink-0 text-accent">
-                          <FolderGit2 size={18} />
-                        </div>
-                      )}
-                      <div>
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-tertiary">
-                            {item.type}
-                          </span>
-                          {item.programSlug && (
-                            <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 rounded bg-surface border border-hairline text-accent">
-                              {item.programSlug}
+                {filteredBookmarks.map((item) => {
+                  const href = savedItemHref(item);
+                  return (
+                    <div key={item._id} className="py-4 flex items-center justify-between group">
+                      <div className="flex items-center gap-3.5">
+                        {item.type === 'organization' ? (
+                          <div className="p-1 rounded-xl bg-page border border-hairline shrink-0">
+                            <OrgLogo
+                              logoUrl={item.logoUrl}
+                              name={item.title}
+                              slug={item.slug}
+                              className="w-10 h-10 rounded-lg"
+                              size={22}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl bg-surface-raised border border-hairline flex items-center justify-center shrink-0 text-accent">
+                            <FolderGit2 size={18} />
+                          </div>
+                        )}
+                        <div>
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-tertiary">
+                              {item.type}
+                            </span>
+                            {item.programSlug && (
+                              <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 rounded bg-surface border border-hairline text-accent">
+                                {item.programSlug}
+                              </span>
+                            )}
+                          </div>
+                          {href ? (
+                            <Link
+                              href={href}
+                              className="font-heading font-bold text-base text-primary hover:text-accent transition-colors block"
+                            >
+                              {item.title}
+                            </Link>
+                          ) : (
+                            <span className="font-heading font-bold text-base text-primary block">
+                              {item.title}
                             </span>
                           )}
+                          {item.subtitle && (
+                            <p className="text-xs text-secondary mt-0.5 line-clamp-1">
+                              {item.subtitle}
+                            </p>
+                          )}
                         </div>
-                        <Link
-                          href={
-                            item.type === 'project' && item.targetId
-                              ? `/projects/${item.targetId}`
-                              : item.type === 'organization' && item.slug
-                              ? `/organizations/${item.slug}`
-                              : '#'
-                          }
-                          className="font-heading font-bold text-base text-primary hover:text-accent transition-colors block"
-                        >
-                          {item.title}
-                        </Link>
-                        {item.subtitle && (
-                          <p className="text-xs text-secondary mt-0.5 line-clamp-1">
-                            {item.subtitle}
-                          </p>
-                        )}
                       </div>
-                    </div>
 
-                    <button
-                      onClick={() => item._id && removeSaved(item._id)}
-                      disabled={busyId === item._id}
-                      className="text-tertiary hover:text-error transition-colors p-1.5 rounded-lg hover:bg-surface"
-                      title="Remove bookmark"
-                    >
-                      {busyId === item._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                    </button>
-                  </div>
-                ))}
+                      <button
+                        onClick={() => item._id && removeSaved(item._id)}
+                        disabled={busyId === item._id}
+                        className="text-tertiary hover:text-error transition-colors p-1.5 rounded-lg hover:bg-surface"
+                        title="Remove bookmark"
+                      >
+                        {busyId === item._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
