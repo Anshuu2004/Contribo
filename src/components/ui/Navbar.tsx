@@ -44,6 +44,7 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
     };
 
     window.addEventListener('scroll', handleScroll);
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -56,9 +57,9 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
   }
 
   return (
-    <header className="fixed top-2.5 left-0 right-0 z-50 flex justify-center px-2.5 pointer-events-none sm:top-3 sm:px-4 lg:px-6">
+    <header className="fixed left-0 right-0 top-2.5 z-50 flex justify-center px-2.5 pointer-events-none sm:top-3 sm:px-4 lg:px-6">
       <div
-        className={`relative z-50 flex w-full max-w-[1400px] items-center justify-between gap-2 rounded-full border border-hairline bg-surface/85 px-3 py-2 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.03)] transition-all pointer-events-auto dark:bg-[#18110D]/85 dark:shadow-[0_8px_30px_rgba(0,0,0,0.25)] sm:px-5 sm:py-1.5 lg:px-5 ${
+        className={`relative z-50 flex w-full max-w-[1400px] items-center justify-between gap-2 rounded-full border border-hairline bg-surface/85 px-3 py-2 shadow-[0_8px_30px_rgba(0,0,0,0.03)] backdrop-blur-md transition-all pointer-events-auto dark:bg-[#18110D]/85 dark:shadow-[0_8px_30px_rgba(0,0,0,0.25)] sm:px-5 sm:py-1.5 lg:px-5 ${
           isScrolled
             ? 'border-hairline shadow-[0_12px_40px_rgba(0,0,0,0.06)]'
             : ''
@@ -68,9 +69,10 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
         <div className="flex min-w-0 flex-shrink-0 items-center">
           <Link
             href="/"
-            className="group flex min-w-0 items-center gap-2 mr-1.5 sm:mr-2 lg:mr-3 xl:mr-5"
+            className="group mr-1.5 flex min-w-0 items-center gap-2 sm:mr-2 lg:mr-3 xl:mr-5"
           >
             <Logo className="h-10 w-10 shrink-0 transition-transform group-hover:scale-105" />
+
             <span className="truncate font-sans text-lg font-extrabold tracking-tight text-primary transition-colors group-hover:text-accent sm:text-xl">
               Contri<span className="text-accent">bo</span>
             </span>
@@ -100,6 +102,7 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
                     className="shrink-0 animate-pulse text-accent"
                   />
                 )}
+
                 {link.label}
               </Link>
             );
@@ -112,7 +115,7 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
             <>
               {/* Theme switcher on large screens */}
               <div
-                role="radiogroup"
+                role="group"
                 aria-label="Theme switcher"
                 className="hidden items-center gap-0.5 rounded-full border border-hairline/80 bg-surface-raised/70 p-1 shadow-2xs backdrop-blur-xs xl:flex"
               >
@@ -125,6 +128,7 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
                       : 'text-muted hover:scale-105 hover:text-primary'
                   }`}
                   aria-label="Switch to light mode"
+                  aria-pressed={!isDark}
                   title="Light mode"
                 >
                   <Sun size={15} />
@@ -139,6 +143,7 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
                       : 'text-muted hover:scale-105 hover:text-primary'
                   }`}
                   aria-label="Switch to dark mode"
+                  aria-pressed={isDark}
                   title="Dark mode"
                 >
                   <Moon size={14} />
@@ -149,8 +154,9 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setTheme(isDark ? 'light' : 'dark')}
-                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-hairline/80 bg-surface-raised/60 transition-all hover:bg-surface-raised xl:hidden"
+                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-hairline/80 bg-surface-raised/60 transition-all hover:bg-surface-raised focus:outline-none focus-visible:ring-2 focus-visible:ring-accent xl:hidden"
                 aria-label="Toggle theme"
+                aria-pressed={isDark}
                 title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
               >
                 {isDark ? (
@@ -182,6 +188,7 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
               onClick={() => setTheme(isDark ? 'light' : 'dark')}
               className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-hairline bg-surface/70 shadow-2xs transition-all duration-200 hover:bg-surface-raised focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               aria-label="Toggle theme"
+              aria-pressed={isDark}
               title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {isDark ? (
@@ -226,9 +233,12 @@ export function Navbar({ authButton }: { authButton?: React.ReactNode }) {
       {isOpen && (
         <div
           id="mobile-navigation"
-          className="fixed left-2.5 right-2.5 top-[76px] z-50 rounded-2xl border border-hairline bg-surface/98 p-2.5 shadow-2xl backdrop-blur-xl pointer-events-auto dark:bg-[#18110D]/98 sm:left-4 sm:right-4 sm:top-[72px] lg:hidden"
+          className="fixed left-2.5 right-2.5 top-[76px] z-50 max-h-[calc(100vh-88px)] overflow-y-auto rounded-2xl border border-hairline bg-surface/98 p-2.5 shadow-2xl backdrop-blur-xl pointer-events-auto dark:bg-[#18110D]/98 sm:left-4 sm:right-4 sm:top-[72px] sm:max-h-[calc(100vh-84px)] lg:hidden"
         >
-          <nav className="flex flex-col gap-1" aria-label="Mobile navigation">
+          <nav
+            className="flex flex-col gap-1"
+            aria-label="Mobile navigation"
+          >
             {LINKS.map((link) => {
               const isActive =
                 pathname === link.href ||
