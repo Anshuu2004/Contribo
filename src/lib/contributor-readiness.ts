@@ -14,10 +14,17 @@ type ReadinessInput = {
 };
 
 const TOTAL_SIGNALS = 4;
+const SIGNAL_POINTS = {
+  displayName: 10,
+  skills: 25,
+  savedOrganization: 30,
+  application: 35,
+} as const;
 
 /**
- * Four onboarding signals, one quarter each. The score is derived from the
- * current dashboard state and only moves up as steps are completed.
+ * Four onboarding signals with the product weights from issue #41. The score
+ * is derived from the current dashboard state and only moves up as steps are
+ * completed.
  */
 export function calculateContributorReadiness({
   displayName,
@@ -30,11 +37,20 @@ export function calculateContributorReadiness({
   const hasSkills = Array.isArray(skills)
     ? skills.some((skill) => typeof skill === 'string' && skill.trim().length > 0)
     : false;
+  const hasSavedOrganization = savedCount > 0;
+  const hasApplication = applicationCount > 0;
 
-  const completed = [hasRealName, hasSkills, savedCount > 0, applicationCount > 0].filter(
-    Boolean
-  ).length;
-  const score = Math.round((completed / TOTAL_SIGNALS) * 100);
+  const completed = [
+    hasRealName,
+    hasSkills,
+    hasSavedOrganization,
+    hasApplication,
+  ].filter(Boolean).length;
+  const score =
+    (hasRealName ? SIGNAL_POINTS.displayName : 0) +
+    (hasSkills ? SIGNAL_POINTS.skills : 0) +
+    (hasSavedOrganization ? SIGNAL_POINTS.savedOrganization : 0) +
+    (hasApplication ? SIGNAL_POINTS.application : 0);
 
   let hint = 'Complete your profile to get started';
   if (completed === TOTAL_SIGNALS) {
@@ -42,8 +58,8 @@ export function calculateContributorReadiness({
   } else if (completed > 0) {
     if (!hasRealName) hint = 'Set your display name';
     else if (!hasSkills) hint = 'Add skills to your profile';
-    else if (savedCount <= 0) hint = 'Save a target organization';
-    else if (applicationCount <= 0) hint = 'Track your first application';
+    else if (!hasSavedOrganization) hint = 'Save a target organization';
+    else if (!hasApplication) hint = 'Track your first application';
   }
 
   return {
