@@ -26,6 +26,7 @@ import {
 } from '@/lib/client/api';
 import { useNetwork } from '@/components/ui/NetworkProvider';
 import { OrgLogo } from '@/components/ui/OrgLogo';
+import { calculateContributorReadiness } from '@/lib/contributor-readiness';
 import type { ApplicationStatus } from '@/../types';
 
 const STATUSES: ApplicationStatus[] = [
@@ -132,6 +133,7 @@ export function DashboardClient({
   displayName = 'Contributor',
   initialApplications = [],
   initialSaved = [],
+  skills = [],
 }: {
   displayName?: string;
   initialApplications?: DashboardApp[];
@@ -156,6 +158,13 @@ export function DashboardClient({
   const applicationCount = safeApplications.length;
   const draftingCount = applications.filter((a) => a.status === 'drafting').length;
   const submittedCount = applications.filter((a) => a.status === 'submitted' || a.status === 'accepted').length;
+
+  const readiness = calculateContributorReadiness({
+    displayName,
+    skills,
+    savedCount,
+    applicationCount,
+  });
 
   const now = new Date();
   const activeDeadlineCount = applications.filter((a) => {
@@ -500,10 +509,14 @@ export function DashboardClient({
             <Zap size={12} /> Contributor Readiness
           </span>
           <div className="text-2xl sm:text-3xl font-heading font-extrabold text-primary">
-            {draftingCount > 0 ? '78%' : applicationCount > 0 ? '60%' : '100%'}
+            {readiness.score}%
           </div>
-          <div className="text-xs font-medium text-success">
-            Profile active & ready
+          <div
+            className={`text-xs font-medium ${
+              readiness.ready ? 'text-success' : 'text-secondary'
+            }`}
+          >
+            {readiness.hint}
           </div>
         </div>
       </div>
