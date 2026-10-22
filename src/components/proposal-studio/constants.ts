@@ -5,6 +5,7 @@ import {
   FolderArchive,
   type LucideIcon,
 } from 'lucide-react';
+import { PROPOSAL_SECTION_MIN_CHARS, type ProposalSectionId } from '@/lib/proposal-studio/sections';
 
 export type StudioTab =
   | 'builder'
@@ -21,7 +22,7 @@ export type StudioMode = 'hub' | 'workspace';
 export type ProgramTagFilter = 'ALL' | 'GSOC' | 'LFX' | 'SOB' | 'C4GT' | 'Outreachy';
 
 export interface BuilderSectionDef {
-  id: string;
+  id: ProposalSectionId;
   title: string;
   shortLabel: string;
   placeholder: string;
@@ -73,7 +74,7 @@ export const BUILDER_SECTIONS: BuilderSectionDef[] = [
     tips: 'Keep it clear and concise (2–4 sentences). Lead with the core deliverable and who benefits.',
     acceptedSnippet:
       'Integration of dynamic ECharts-based geospatial visualization modules and caching optimization in Apache Superset for large-scale analytical dashboards.',
-    minChars: 40,
+    minChars: PROPOSAL_SECTION_MIN_CHARS.summary,
   },
   {
     id: 'problemStatement',
@@ -84,7 +85,7 @@ export const BUILDER_SECTIONS: BuilderSectionDef[] = [
     tips: 'Reference concrete GitHub issues, UI bottlenecks, or missing APIs. Quantify impact when possible.',
     acceptedSnippet:
       'Existing map visualizations in Superset rely on legacy deck.gl layers that lack custom tile server fallback and real-time query aggregation. When rendering datasets >500,000 rows, frontend rendering frames drop below 15 FPS.',
-    minChars: 60,
+    minChars: PROPOSAL_SECTION_MIN_CHARS.problemStatement,
   },
   {
     id: 'architecture',
@@ -95,7 +96,7 @@ export const BUILDER_SECTIONS: BuilderSectionDef[] = [
     tips: 'Name real directories, classes, hooks, and schemas. Include testing and benchmark strategy.',
     acceptedSnippet:
       'We propose a decoupled spatial rendering layer using ECharts GL engine backed by an asynchronous Redis query cache. Backend (Flask + SQLAlchemy) will generate spatial buckets before transferring GeoJSON to React frontend.',
-    minChars: 80,
+    minChars: PROPOSAL_SECTION_MIN_CHARS.architecture,
   },
   {
     id: 'deliverables',
@@ -105,7 +106,7 @@ export const BUILDER_SECTIONS: BuilderSectionDef[] = [
     tips: 'Mentors prefer measurable targets (coverage %, FPS, latency SLOs).',
     acceptedSnippet:
       '1. Reusable GeoECharts component in superset-frontend.\n2. Redis spatial cache middleware.\n3. Unit & Cypress test suites with 90%+ coverage.\n4. Official contributor documentation.',
-    minChars: 40,
+    minChars: PROPOSAL_SECTION_MIN_CHARS.deliverables,
   },
   {
     id: 'timeline',
@@ -116,7 +117,7 @@ export const BUILDER_SECTIONS: BuilderSectionDef[] = [
     tips: 'Include explicit buffers for reviews, docs, and testing. Align phases with community bonding if applicable.',
     acceptedSnippet:
       'Weeks 1-2: Community bonding & API schema design.\nWeeks 3-6: Implement GeoECharts visualization component.\nWeeks 7-10: Redis spatial caching middleware.\nWeeks 11-12: Integration tests, docs, and final merge.',
-    minChars: 50,
+    minChars: PROPOSAL_SECTION_MIN_CHARS.timeline,
   },
   {
     id: 'testing',
@@ -126,7 +127,7 @@ export const BUILDER_SECTIONS: BuilderSectionDef[] = [
     tips: 'Mention PyTest, Jest, Vitest, Cypress or whatever matches the target repository.',
     acceptedSnippet:
       'Unit tests using Jest & React Testing Library (target 90%+ branch coverage). End-to-end integration tests in Cypress for multi-layer map rendering. Automated CI checks on GitHub Actions.',
-    minChars: 40,
+    minChars: PROPOSAL_SECTION_MIN_CHARS.testing,
   },
   {
     id: 'risks',
@@ -137,7 +138,7 @@ export const BUILDER_SECTIONS: BuilderSectionDef[] = [
     tips: 'Shows maturity and engineering foresight. Include time buffers for unexpected blockers.',
     acceptedSnippet:
       'Risk 1: Upstream WebGL tile renderer memory leak. Mitigation: Fallback to canvas rasterizer and load-on-demand bounding box caching with 1-week buffer allocated in Phase 2.',
-    minChars: 30,
+    minChars: PROPOSAL_SECTION_MIN_CHARS.risks,
   },
   {
     id: 'aboutMe',
@@ -148,7 +149,7 @@ export const BUILDER_SECTIONS: BuilderSectionDef[] = [
     tips: 'Highlight stack fit, prior merged PRs, open-source communication, and timezone availability.',
     acceptedSnippet:
       'Final year CS student with 2 years of experience in React, TypeScript, and Python Flask. Merged PRs: #14209 (SQL Lab execution timer), #14311 (Filter component tests). Timezone: UTC+5:30 (40h/week dedicated).',
-    minChars: 40,
+    minChars: PROPOSAL_SECTION_MIN_CHARS.aboutMe,
   },
 ];
 
