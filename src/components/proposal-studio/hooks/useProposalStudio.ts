@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { calculateProposalProgress as computeProgress } from '@/lib/proposal-studio/sections';
 import {
   DRAFT_PROPOSALS,
   ORG_PROPOSALS_CATALOG,
@@ -48,13 +49,6 @@ function normalizeTab(value: string | null): StudioTab {
 
 function sectionFilled(value: string | undefined, minChars: number) {
   return (value || '').trim().length >= minChars;
-}
-
-function computeProgress(sections: Record<string, string>) {
-  const filledCount = BUILDER_SECTIONS.filter((s) =>
-    sectionFilled(sections[s.id], s.minChars)
-  ).length;
-  return Math.round((filledCount / BUILDER_SECTIONS.length) * 100);
 }
 
 export function useProposalStudio() {

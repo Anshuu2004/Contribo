@@ -1,6 +1,7 @@
 import { COLLECTIONS, getCollection } from '@/lib/db';
 import { improveProposalSectionWithGemini } from '@/lib/ai/gemini';
 import { toObjectId } from '@/lib/serialize';
+import { PROPOSAL_SECTION_IDS, calculateProposalProgress } from '@/lib/proposal-studio/sections';
 import {
   DRAFT_PROPOSALS,
   ACCEPTED_PROPOSALS_LIBRARY,
@@ -29,15 +30,11 @@ function proposalIdFilter(id: string) {
   return { $or: clauses };
 }
 
-const ALLOWED_SECTION_IDS = new Set([
-  'summary',
-  'problemStatement',
-  'architecture',
-  'timeline',
-  'deliverables',
+const ALLOWED_SECTION_IDS = new Set<string>([
+  ...PROPOSAL_SECTION_IDS,
+  // Keep legacy proposal content readable and editable.
   'stretchGoals',
   'communityContributions',
-  'aboutMe',
 ]);
 
 function slugify(value: string, fallback: string) {
@@ -171,16 +168,7 @@ export async function createProposal(data: {
     communityContributionsCount: 1,
     updatedAt: 'Just now',
     createdAt: nowIso,
-    sections: {
-      summary: '',
-      problemStatement: '',
-      architecture: '',
-      timeline: '',
-      deliverables: '',
-      stretchGoals: '',
-      communityContributions: '',
-      aboutMe: '',
-    },
+    sections: Object.fromEntries([...ALLOWED_SECTION_IDS].map((id) => [id, ''])),
   };
 
   try {
@@ -222,10 +210,7 @@ export async function updateProposal(
 
   let progress = updates.progress;
   if (progress === undefined && mergedSections) {
-    const filled = Object.values(mergedSections).filter(
-      (v) => (v || '').trim().length > 30
-    ).length;
-    progress = Math.round((filled / 8) * 100);
+    progress = calculateProposalProgress(mergedSections);
   }
   if (typeof progress === 'number') {
     progress = Math.min(100, Math.max(0, Math.round(progress)));
