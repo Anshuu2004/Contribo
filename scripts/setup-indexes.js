@@ -144,7 +144,31 @@ async function main() {
     // 4. users (auth + profile)
     console.log("\nConfiguring indexes for 'users'...");
     const usersCollection = db.collection('users');
-    await ensureIndex(usersCollection, { email: 1 }, { unique: true, sparse: true });
+    // Drop the legacy unique sparse email_1 index. `sparse` only omits docs
+    // where the field is ABSENT, but the NextAuth MongoDB adapter writes
+    // `email: null` for GitHub accounts with no public email — so every
+    // subsequent email-less account failed with E11000 dup key { email: null }.
+    try {
+      await usersCollection.dropIndex('email_1');
+      console.log('- dropped legacy unique sparse index: email_1');
+    } catch (err) {
+      if (err && err.codeName === 'IndexNotFound') {
+        console.log('- no legacy email_1 index to drop');
+      } else {
+        console.warn(`- could not drop email_1: ${err.message}`);
+      }
+    }
+    // Partial unique index: enforces uniqueness only for string emails,
+    // so null/missing emails (private GitHub accounts) no longer collide.
+    await ensureIndex(
+      usersCollection,
+      { email: 1 },
+      {
+        unique: true,
+        name: 'email_lookup',
+        partialFilterExpression: { email: { $type: 'string' } },
+      }
+    );
 
     // 5. saved_items (dashboard bookmarks)
     console.log("\nConfiguring indexes for 'saved_items'...");

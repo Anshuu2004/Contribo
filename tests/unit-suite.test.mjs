@@ -479,4 +479,81 @@ test('8. Proposal Section Live Counter & Threshold Progress', async (t) => {
   });
 });
 
+// ==========================================
+// 9. OAuth Provider Configuration Predicate
+// (mirrors src/lib/auth-providers.ts — node --test cannot import TS)
+// ==========================================
+const OAUTH_PLACEHOLDER_RE = /^your_.*_here$/i;
+
+function isUsableCredential(value) {
+  if (!value) return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  return !OAUTH_PLACEHOLDER_RE.test(trimmed);
+}
+
+function isProviderConfigured(env, provider) {
+  const upper = provider.toUpperCase();
+  return (
+    isUsableCredential(env[`AUTH_${upper}_ID`]) &&
+    isUsableCredential(env[`AUTH_${upper}_SECRET`])
+  );
+}
+
+function getConfiguredOAuthProviders(env) {
+  return ['github', 'google'].filter((id) => isProviderConfigured(env, id));
+}
+
+test('9. OAuth Provider Configuration Detection', async (t) => {
+  await t.test('treats missing or empty credentials as unconfigured', () => {
+    assert.equal(isProviderConfigured({}, 'github'), false);
+    assert.equal(isProviderConfigured({ AUTH_GITHUB_ID: '', AUTH_GITHUB_SECRET: '' }, 'github'), false);
+    assert.equal(isProviderConfigured({ AUTH_GITHUB_ID: 'abc' }, 'github'), false);
+    assert.equal(isProviderConfigured({ AUTH_GITHUB_ID: 'abc', AUTH_GITHUB_SECRET: '   ' }, 'github'), false);
+  });
+
+  await t.test('treats .env.example placeholder values as unconfigured', () => {
+    assert.equal(
+      isProviderConfigured(
+        { AUTH_GITHUB_ID: 'your_github_id_here', AUTH_GITHUB_SECRET: 'your_github_secret_here' },
+        'github'
+      ),
+      false
+    );
+    assert.deepEqual(
+      getConfiguredOAuthProviders({
+        AUTH_GITHUB_ID: 'your_github_id_here',
+        AUTH_GITHUB_SECRET: 'your_github_secret_here',
+        AUTH_GOOGLE_ID: 'your_google_id_here',
+        AUTH_GOOGLE_SECRET: 'your_google_secret_here',
+      }),
+      []
+    );
+  });
+
+  await t.test('registers only providers with both real id and secret', () => {
+    const env = {
+      AUTH_GITHUB_ID: 'Iv1.realid123',
+      AUTH_GITHUB_SECRET: 'real_secret',
+      AUTH_GOOGLE_ID: 'your_google_id_here',
+      AUTH_GOOGLE_SECRET: 'real_secret',
+    };
+    assert.equal(isProviderConfigured(env, 'github'), true);
+    assert.equal(isProviderConfigured(env, 'google'), false);
+    assert.deepEqual(getConfiguredOAuthProviders(env), ['github']);
+  });
+
+  await t.test('both providers configured returns both in order', () => {
+    assert.deepEqual(
+      getConfiguredOAuthProviders({
+        AUTH_GITHUB_ID: 'id',
+        AUTH_GITHUB_SECRET: 'secret',
+        AUTH_GOOGLE_ID: 'id',
+        AUTH_GOOGLE_SECRET: 'secret',
+      }),
+      ['github', 'google']
+    );
+  });
+});
+
 
