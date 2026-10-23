@@ -52,7 +52,12 @@ async function getOrganizationsPage(programId?: string, search?: string, categor
 export default async function OrganizationsDirectory({ searchParams }: Props) {
   const params = await searchParams;
   const programId = typeof params.programId === 'string' ? params.programId : undefined;
-  const searchQuery = typeof params.q === 'string' ? params.q : undefined;
+  const searchQuery =
+  typeof params.q === 'string'
+    ? params.q
+    : typeof params.search === 'string'
+      ? params.search
+      : undefined;
   const category = typeof params.category === 'string' ? params.category : undefined;
 
   const [pageData, session] = await Promise.all([
