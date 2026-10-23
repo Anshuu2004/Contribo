@@ -24,8 +24,7 @@ const SLUG_REDIRECTS: Record<string, string> = {
   blender: '/organizations/blender-foundation',
   owasp: '/organizations/owasp-foundation',
   postgres: '/organizations/postgresql',
-  jupyter: '/organizations?search=jupyter',
-  docker: '/organizations?search=docker',
+    jupyter: '/organizations/outreachy-internships-with-jupyterhub-outreachy',
 };
 
 type Props = {
