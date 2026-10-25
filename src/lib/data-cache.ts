@@ -3,7 +3,7 @@ import { getPlatformStats } from '@/lib/repositories/stats';
 import { listPrograms } from '@/lib/repositories/programs';
 import { getFilterFacets } from '@/lib/repositories/filters';
 import { getTrendingProjects } from '@/lib/repositories/trending';
-import { listOrganizations } from '@/lib/repositories/organizations';
+import { listOrganizations, listFeaturedOrganizations } from '@/lib/repositories/organizations';
 import { listProjects } from '@/lib/repositories/projects';
 
 /** Platform stats — short TTL, high traffic. */
@@ -81,6 +81,13 @@ export const getCachedDefaultOrganizations = unstable_cache(
       lean: true,
     }),
   ['default-organizations-v6'],
+  { revalidate: 300 }
+);
+
+/** Home page org showcase + the real total it is allowed to advertise. */
+export const getCachedFeaturedOrganizations = unstable_cache(
+  async () => listFeaturedOrganizations(16),
+  ['featured-organizations-v1'],
   { revalidate: 300 }
 );
 

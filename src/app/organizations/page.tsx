@@ -184,7 +184,7 @@ export default async function OrganizationsDirectory({ searchParams }: Props) {
       )}
 
       {/* Marquee */}
-      <OrgMarquee />
+      <OrgMarquee organizations={organizations} />
 
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm text-muted font-mono">
