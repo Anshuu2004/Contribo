@@ -1,20 +1,6 @@
-// Page maths for paginated list pages. Plain JS so the node test runner can
-// import it directly, like application-milestones.mjs.
-
-/**
- * Reads a 1-based page number from a search param. Anything that isn't a whole
- * number of at least 1 (missing, "0", "-3", "abc", "1.5") becomes 1, so it can
- * never turn into a negative or NaN skip.
- *
- * @param {string | string[] | undefined} raw
- * @returns {number}
- */
-export function parsePage(raw) {
-  const value = Array.isArray(raw) ? raw[0] : raw;
-  if (typeof value !== 'string' || !/^\d+$/.test(value.trim())) return 1;
-  const page = Number.parseInt(value.trim(), 10);
-  return Number.isSafeInteger(page) && page >= 1 ? page : 1;
-}
+// Page maths for paginated list pages (page count, item range, page links).
+// Plain JS so the node test runner can import it directly. parsePage lives in
+// pagination.ts.
 
 /**
  * Number of pages for `total` items. Always at least 1, so an empty list

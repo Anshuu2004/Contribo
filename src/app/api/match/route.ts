@@ -76,6 +76,17 @@ type EnrichedOrganization = Organization & {
   resolvedWebsiteUrl?: string;
 };
 
+/**
+ * Prefer an explicit stored project count. Otherwise use only the aggregated
+ * catalog rows. No synthetic fallback: zero projects means zero.
+ */
+function resolveProjectCount(org: EnrichedOrganization): number {
+  if (typeof org.projectCount === 'number' && Number.isFinite(org.projectCount)) {
+    return Math.max(0, org.projectCount);
+  }
+  return org.yearlyStats?.reduce((sum, item) => sum + item.count, 0) ?? 0;
+}
+
 function normalizeSkills(input: unknown): string[] | null {
   const cleaned = normalizeStringArray(input, {
     maxItems: MAX_SKILLS,
@@ -198,34 +209,13 @@ async function enrichOrganizations(orgs: Organization[]): Promise<EnrichedOrgani
     }
 
     const orgCounts = countByOrgAndYear.get(slugKey) || new Map<number, number>();
-    const orgYears = Array.isArray(org.years) ? (org.years as number[]) : [];
 
-    const yearSet = new Set<number>([
-      ...orgYears,
-      ...Array.from(orgCounts.keys()),
-    ]);
-
-    const sortedYears = Array.from(yearSet).filter((y) => y >= 2017 && y <= 2026).sort((a, b) => a - b);
-    const yearlyStats: Array<{ year: number; count: number }> = [];
-
-    if (sortedYears.length > 0) {
-      for (const y of sortedYears) {
-        const directCount = orgCounts.get(y);
-        if (directCount && directCount > 0) {
-          yearlyStats.push({ year: y, count: directCount });
-        } else {
-          const seed = (slugKey.charCodeAt(0) || 10) + y * 7;
-          const pseudoCount = Math.max(2, (seed % 12) + 3);
-          yearlyStats.push({ year: y, count: pseudoCount });
-        }
-      }
-    } else {
-      const defaultRange = [2022, 2023, 2024, 2025, 2026];
-      for (const y of defaultRange) {
-        const directCount = orgCounts.get(y);
-        yearlyStats.push({ year: y, count: directCount || Math.max(3, (y % 6) * 2 + 4) });
-      }
-    }
+    // Only report years that have rows in the project catalog. Organization
+    // participation years are metadata, not evidence of catalogued projects.
+    const yearlyStats: Array<{ year: number; count: number }> = Array.from(orgCounts.entries())
+      .filter(([year, count]) => year >= 2017 && year <= 2026 && count > 0)
+      .sort(([yearA], [yearB]) => yearA - yearB)
+      .map(([year, count]) => ({ year, count }));
 
     return {
       ...org,
@@ -384,7 +374,7 @@ function heuristicRankOrganizations(
         reasoning: reasoning.trim(),
         years,
         latestYear,
-        projectCount: org.projectCount || (org.yearlyStats?.reduce((acc, s) => acc + s.count, 0) || 8),
+        projectCount: resolveProjectCount(org),
         websiteUrl: org.resolvedWebsiteUrl,
         githubUrl: org.resolvedGithubUrl,
         ideasUrl: org.ideasUrl,
@@ -493,7 +483,7 @@ export async function POST(req: Request) {
         matchedSkills: matched.slice(0, 6).join(', '),
         description: (org.description || '').substring(0, 220),
         years,
-        projectCount: org.projectCount,
+        projectCount: resolveProjectCount(org),
         programName: org.programName,
       };
     });
@@ -546,7 +536,7 @@ export async function POST(req: Request) {
                     : base?.reasoning || `Ideal skill match for ${skills.join(', ')} with ${dbOrg.name}.`,
                 years: Array.isArray(dbOrg.years) ? dbOrg.years : [2026],
                 latestYear: dbOrg.years?.length ? Math.max(...dbOrg.years) : 2026,
-                projectCount: dbOrg.projectCount || 8,
+                projectCount: resolveProjectCount(dbOrg),
                 websiteUrl: dbOrg.resolvedWebsiteUrl,
                 githubUrl: dbOrg.resolvedGithubUrl,
                 ideasUrl: dbOrg.ideasUrl,
@@ -648,7 +638,7 @@ Rules:
                     : base?.reasoning || 'Strong stack alignment with your developer profile.',
                 years: Array.isArray(dbOrg.years) ? dbOrg.years : [2026],
                 latestYear: dbOrg.years?.length ? Math.max(...dbOrg.years) : 2026,
-                projectCount: dbOrg.projectCount || 8,
+                projectCount: resolveProjectCount(dbOrg),
                 websiteUrl: dbOrg.resolvedWebsiteUrl,
                 githubUrl: dbOrg.resolvedGithubUrl,
                 ideasUrl: dbOrg.ideasUrl,

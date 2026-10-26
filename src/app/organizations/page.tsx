@@ -15,7 +15,8 @@ import {
   getCachedDefaultOrganizations,
   ORGANIZATIONS_PAGE_SIZE,
 } from '@/lib/data-cache';
-import { pageCount, pageRange, pageWindow, parsePage } from '@/lib/pagination.mjs';
+import { parsePage } from '@/lib/pagination';
+import { pageCount, pageRange, pageWindow } from '@/lib/pagination-helpers.mjs';
 
 export const metadata = {
   title: 'Organizations | Contribo',
@@ -59,7 +60,12 @@ async function getOrganizationsPage(page: number, programId?: string, search?: s
 export default async function OrganizationsDirectory({ searchParams }: Props) {
   const params = await searchParams;
   const programId = typeof params.programId === 'string' ? params.programId : undefined;
-  const searchQuery = typeof params.q === 'string' ? params.q : undefined;
+  const searchQuery =
+  typeof params.q === 'string'
+    ? params.q
+    : typeof params.search === 'string'
+      ? params.search
+      : undefined;
   const category = typeof params.category === 'string' ? params.category : undefined;
   const page = parsePage(params.page);
 
@@ -196,7 +202,7 @@ export default async function OrganizationsDirectory({ searchParams }: Props) {
       )}
 
       {/* Marquee */}
-      <OrgMarquee />
+      <OrgMarquee organizations={organizations} />
 
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm text-muted font-mono">

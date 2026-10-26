@@ -130,6 +130,9 @@ Fill in the necessary variables in `.env`:
 - `AUTH_SECRET`: A random string (generate with `openssl rand -base64 32` or similar).
 - `OPENAI_API_KEY`: *(Optional, for AI matcher)*
 
+> [!IMPORTANT]
+> **OAuth providers are enabled only with real credentials.** Leaving `AUTH_GITHUB_*` / `AUTH_GOOGLE_*` at their `.env.example` placeholders is fine — the login page simply hides those buttons instead of failing with a Configuration error. If you do configure GitHub, set your OAuth app's **Authorization callback URL** to `http://localhost:3000/api/auth/callback/github`. Note that `npm run db:*` scripts read `.env` via dotenv, while Next.js also loads `.env.local` (which overrides `.env`).
+
 ### 5. Seed the Database
 Populate the program and sample project database:
 ```bash
